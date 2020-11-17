@@ -26,15 +26,24 @@ const calculateScore = (formValues: Inputs): number => {
     return hasCathedral ? (sections + pennants) * 3 : (sections + pennants) * 2;
   }
 
+  if (featureType === 'monastery') {
+    return (surroundingTiles || 0) + 1;
+  }
+
+  if (featureType === 'field') {
+    return (completedCities || 0) * 3;
+  }
+
   return 0;
 };
 
-interface NumberInputProps extends Omit<ControllerProps<"input">, "render"> {
-  inputProps: {
-    min: number;
-    max?: number;
-  }
-}
+
+// interface NumberInputProps extends Omit<ControllerProps<"input">, "render"> {
+//   inputProps: {
+//     min: number;
+//     max?: number;
+//   }
+// }
 
 const NumberInput = ({
   as,
@@ -63,12 +72,27 @@ const NumberInput = ({
 
 
 export default function ScoreForm() {
-  const defaultValues = { featureType: '', sections: 2, pennants: 0 }
-  const { register, watch, control, getValues } = useForm<Inputs>({ defaultValues });
+  const defaultValues = {
+    featureType: '',
+    sections: 2,
+    pennants: 0,
+    hasInn: false,
+    hasCathedral: false,
+    surroundingTiles: 0,
+    completedCities: 0
+  };
+
+  const { register, watch, control } = useForm<Inputs>({
+    defaultValues
+  });
 
   const watchAll = watch();
 
-  const values = getValues();
+  // this is account for a quirk in which, when you click on a feature for the first time, initially it only sets the featureType in watchAll
+  const values = Object.keys(watchAll).length === 1 ? {
+    ...defaultValues,
+    ...watchAll
+  } : watchAll;
   const score = calculateScore(values);
 
   return (
@@ -95,17 +119,55 @@ export default function ScoreForm() {
             />
             City
           </label>
+          <label>
+            <input
+              name="featureType"
+              type="radio"
+              value="monastery"
+              ref={register}
+            />
+            Monastery
+          </label>
+          <label>
+            <input
+              name="featureType"
+              type="radio"
+              value="field"
+              ref={register}
+            />
+            Field
+          </label>
         </div>
-        <div>
-          <strong>Sections:</strong>
-          <NumberInput
-            control={control}
-            name="sections"
-            inputProps={{
-              min: defaultValues.sections
-            }}
-          />
-        </div>
+        {(watchAll.featureType === 'road' || watchAll.featureType === 'city') && (
+          <div>
+            <strong>Sections:</strong>
+            <NumberInput
+              control={control}
+              name="sections"
+              inputProps={{
+                min: defaultValues.sections
+              }}
+            />
+          </div>
+        )}
+        {watchAll.featureType === 'monastery' && (
+          <div>
+            <strong>Surrounding Tiles:</strong>
+            <NumberInput
+              control={control}
+              name="surroundingTiles"
+            />
+          </div>
+        )}
+        {watchAll.featureType === 'field' && (
+          <div>
+            <strong>Completed Cities:</strong>
+            <NumberInput
+              control={control}
+              name="completedCities"
+            />
+          </div>
+        )}
         {watchAll.featureType === 'city' && (
           <div>
             <strong>Pennants:</strong>
@@ -140,7 +202,7 @@ export default function ScoreForm() {
         </div>
       </form>
       <div>
-        {!Object.keys(values).length ? (
+        {watchAll.featureType === '' ? (
           <em>Select a feature type to calculate the score.</em>
         ) : (
           <>
