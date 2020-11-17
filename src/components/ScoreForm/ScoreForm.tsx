@@ -1,13 +1,14 @@
 import React from 'react';
 import { useForm, Controller, ControllerProps } from "react-hook-form";
 
-type Inputs = {
+interface Inputs {
   featureType: string;
   sections: number;
-  pennants?: number;
-  hasInn?: boolean;
-  hasCathedral?: boolean;
-  testArray?: string[];
+  pennants: number;
+  hasInn: boolean;
+  hasCathedral: boolean;
+  surroundingTiles: number;
+  completedCities: number;
 };
 
 const calculateScore = (formValues: Inputs): number => {
