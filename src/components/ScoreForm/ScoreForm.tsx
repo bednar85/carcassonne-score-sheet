@@ -1,48 +1,75 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller, ControllerProps } from "react-hook-form";
 
 type Inputs = {
   featureType: string;
   sections: number;
   pennants?: number;
-  innWithLake?: boolean;
-  cathedral?: boolean;
+  hasInn?: boolean;
+  hasCathedral?: boolean;
   testArray?: string[];
 };
 
 const calculateScore = (formValues: Inputs): number => {
-  const { featureType, innWithLake, cathedral } = formValues;
-  const sections = Number(formValues.sections);
-  const pennants = formValues.pennants ? Number(formValues.pennants) : 0;
-
-  // console.log('');
-  // console.log('FILENAME - METHOD');
-  // console.log('  formValues:', formValues);
-  // console.log('  sections:', sections);
-  // console.log('  pennants:', pennants);
-
-  if (featureType === undefined || featureType === '') {
+  if (!Object.keys(formValues).length) {
     return 0;
   }
 
+  const { featureType, sections, hasInn, hasCathedral } = formValues;
+  const pennants = formValues.pennants || 0;
+
   if (featureType === 'road') {
-    return innWithLake ? sections * 2 : sections;
+    return hasInn ? sections * 2 : sections;
   }
 
   if (featureType === 'city') {
-    return cathedral ? (sections + pennants) * 3 : (sections + pennants) * 2;
+    return hasCathedral ? (sections + pennants) * 3 : (sections + pennants) * 2;
   }
 
   return 0;
 };
 
+interface NumberInputProps extends Omit<ControllerProps<"input">, "render"> {
+  inputProps: {
+    min: number;
+    max?: number;
+  }
+}
+
+const NumberInput = ({
+  as,
+  inputProps,
+  ...rest
+}: any) => (
+    <Controller
+      {...rest}
+      render={(props) => (
+        <input
+          {...props}
+          type="number"
+          min={0}
+          onChange={(e) =>
+            props.onChange(
+              Number.isNaN(parseFloat(e.target.value))
+              ? 0
+              : parseFloat(e.target.value)
+              )
+            }
+          {...inputProps}
+        />
+      )}
+    />
+  );
+
+
 export default function ScoreForm() {
-  const defaultValues = { featureType: 'road', sections: 2 }
-  const { register, watch } = useForm<Inputs>({ defaultValues });
+  const defaultValues = { featureType: '', sections: 2, pennants: 0 }
+  const { register, watch, control, getValues } = useForm<Inputs>({ defaultValues });
 
   const watchAll = watch();
 
-  console.log('watchAll:', watchAll);
+  const values = getValues();
+  const score = calculateScore(values);
 
   return (
     <div>
@@ -71,71 +98,48 @@ export default function ScoreForm() {
         </div>
         <div>
           <strong>Sections:</strong>
-          <input
+          <NumberInput
+            control={control}
             name="sections"
-            type="number"
-            defaultValue={defaultValues.sections}
-            min={2}
-            ref={register}
+            inputProps={{
+              min: defaultValues.sections
+            }}
           />
         </div>
-        {/* {watchFeatureType === 'city' && (
+        {watchAll.featureType === 'city' && (
           <div>
             <strong>Pennants:</strong>
-            <input
+            <NumberInput
+              control={control}
               name="pennants"
-              type="number"
-              defaultValue="0"
-              min="0"
-              max={watchSections}
-              ref={register}
+              inputProps={{
+                max: watchAll.sections
+              }}
             />
           </div>
-        )} */}
+        )}
         <div>
-          <strong>Pennants:</strong>
-          <input
-            name="pennants"
-            type="number"
-            defaultValue={0}
-            min={0}
-            ref={register}
-          />
-        </div>
-        <div>
-          {/* {watchFeatureType === 'road' && (
+          {watchAll.featureType === 'road' && (
             <>
               <strong>Modifiers:</strong>
               <label>
-                <input name="innWithLake" type="checkbox" value="hasInnWithLake" ref={register} />
-                Inn with Lake
+                <input name="hasInn" type="checkbox" defaultChecked={false} ref={register} />
+                Has an Inn
               </label>
             </>
           )}
-          {watchFeatureType === 'city' && watchSections > 5 && (
+          {watchAll.featureType === 'city' && watchAll.sections > 4 && (
             <>
               <strong>Modifiers:</strong>
               <label>
-                <input name="cathedral" type="checkbox" value="hasCathedral" ref={register} />
-                Cathedral
+                <input name="hasCathedral" type="checkbox" defaultChecked={false} ref={register} />
+                Has a Cathedral
               </label>
             </>
-          )} */}
-          <>
-            <strong>Modifiers:</strong>
-            <label>
-              <input name="innWithLake" type="checkbox" defaultChecked={false} ref={register} />
-              Inn with Lake
-            </label>
-            <strong>Modifiers:</strong>
-            <label>
-              <input name="cathedral" type="checkbox" defaultChecked={false} ref={register} />
-              Cathedral
-            </label>
-          </>
+          )}
         </div>
       </form>
-      {/* <div>
+      <div>
         {!Object.keys(values).length ? (
           <em>Select a feature type to calculate the score.</em>
         ) : (
@@ -144,7 +148,7 @@ export default function ScoreForm() {
             {score}
           </>
         )}
-      </div> */}
+      </div>
     </div>
   );
 }
