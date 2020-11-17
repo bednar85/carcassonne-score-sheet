@@ -18,6 +18,9 @@ const calculateScore = (formValues: Inputs): number => {
 
   const { featureType, sections, hasInn, hasCathedral } = formValues;
   const pennants = formValues.pennants || 0;
+  const surroundingTiles = formValues.surroundingTiles || 0;
+  const completedCities = formValues.completedCities || 0;
+
 
   if (featureType === 'road') {
     return hasInn ? sections * 2 : sections;
