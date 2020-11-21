@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useForm, Controller, ControllerProps } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import NumberInput from '../NumberInput/NumberInput';
 
 interface Inputs {
   featureType: string;
@@ -43,66 +44,6 @@ const calculateScore = (formValues: Inputs): number => {
 
   return 0;
 };
-
-
-// can probably extract this out to a separate component
-// consider adding logic to onChange to remove preceding 0's
-const NumberInput = ({
-  inputProps,
-  ...controllerProps
-}: any) => (
-    <Controller
-      {...controllerProps}
-      render={(props) => {
-
-        const { control, name } = controllerProps;
-        const { setValue } = control;
-        const min = inputProps?.min || 0;
-        const max = inputProps?.max || Infinity;
-        const isInRange = (value: number) => (min <= value && value <= max);
-
-        return (
-          <>
-            <input
-              {...props}
-              type="number"
-              min={min}
-              max={max}
-              onChange={(e) =>
-                props.onChange(
-                  Number.isNaN(parseFloat(e.target.value))
-                  ? 0
-                  : parseFloat(e.target.value)
-                  )
-                }
-              {...inputProps}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const newValue = props.value - 1;
-
-                if (isInRange(newValue)) setValue(name, newValue);
-              }}
-            >
-              decrement
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const newValue = props.value + 1;
-
-                if (isInRange(newValue)) setValue(name, newValue);
-              }}
-            >
-              increment
-            </button>
-          </>
-        )
-      }}
-    />
-  );
-
 
 export default function ScoreForm() {
   const [ records, setRecords ] = useState<Inputs[]>([]);
