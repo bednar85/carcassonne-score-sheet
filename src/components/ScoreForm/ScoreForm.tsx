@@ -25,6 +25,9 @@ const calculateScore = (formValues: Inputs): number => {
   const surroundingTiles = formValues.surroundingTiles || 0;
   const completedCities = formValues.completedCities || 0;
 
+  // console.log('');
+  // console.log('FILENAME - METHOD');
+  // console.log('  formValues:', formValues);
 
   if (featureType === 'road') {
     return hasInn ? roadSegments * 2 : roadSegments;
@@ -59,7 +62,7 @@ export default function ScoreForm() {
     completedCities: 0
   };
 
-  const { register, handleSubmit, watch, control } = useForm<Inputs>({
+  const { control, handleSubmit, register, reset, watch } = useForm<Inputs>({
     defaultValues
   });
 
@@ -78,7 +81,18 @@ export default function ScoreForm() {
   } : watchAll;
   const score = calculateScore(values);
 
-  const onSubmit = (data: any) => setRecords([...records, data]);
+  /**
+   * when saving roads or cities
+   * for roads:
+   *   if hasInn is false exclude that from the record
+   * for cities:
+   *   if pennants is 0 or hasCathedral is false exclude them from the record
+   * since I only care if they have been set
+   */
+  const onSubmit = (data: any) => {
+    setRecords([...records, data])
+    reset();
+  };
 
   const getFormContents = () => {
     if (watchAll.featureType === 'road') {
@@ -222,7 +236,7 @@ export default function ScoreForm() {
             </>
           )}
         </div>
-        <input className="" type="submit" />
+        <button className="" type="submit" disabled={watchAll.featureType === ''}>Add to Score Sheet</button>
       </form>
       <ul>
         {records.map((record: Inputs, index: number) => (
