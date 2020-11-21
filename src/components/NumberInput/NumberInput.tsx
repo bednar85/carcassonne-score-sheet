@@ -1,6 +1,7 @@
 import React from 'react';
 import { Controller } from "react-hook-form";
 
+// refactor so I'm not using any here
 const NumberInput = ({
   inputProps,
   ...controllerProps
@@ -16,6 +17,16 @@ const NumberInput = ({
 
         return (
           <>
+            <button
+              className="number-input__btn number-input__btn--decrement"
+              type="button"
+              onClick={() => {
+                const newValue = props.value - 1;
+                if (isInRange(newValue)) setValue(name, newValue);
+              }}
+            >
+              –
+            </button>
             <input
               {...props}
               type="number"
@@ -31,24 +42,14 @@ const NumberInput = ({
               {...inputProps}
             />
             <button
-              type="button"
-              onClick={() => {
-                const newValue = props.value - 1;
-
-                if (isInRange(newValue)) setValue(name, newValue);
-              }}
-            >
-              decrement
-            </button>
-            <button
+              className="number-input__btn number-input__btn--increment"
               type="button"
               onClick={() => {
                 const newValue = props.value + 1;
-
                 if (isInRange(newValue)) setValue(name, newValue);
               }}
             >
-              increment
+              +
             </button>
           </>
         )

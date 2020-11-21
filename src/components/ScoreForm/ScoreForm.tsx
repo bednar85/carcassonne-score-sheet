@@ -48,7 +48,7 @@ const calculateScore = (formValues: Inputs): number => {
   return 0;
 };
 
-export default function ScoreForm() {
+const ScoreForm = () => {
   const [ records, setRecords ] = useState<Inputs[]>([]);
 
   const defaultValues = {
@@ -248,3 +248,5 @@ export default function ScoreForm() {
     </div>
   );
 }
+
+export default ScoreForm;
