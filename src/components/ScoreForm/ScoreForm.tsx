@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Controller, ControllerProps } from "react-hook-form";
 
 interface Inputs {
   featureType: string;
-  sections: number;
-  pennants: number;
-  hasInn: boolean;
-  hasCathedral: boolean;
-  surroundingTiles: number;
-  completedCities: number;
+  roadSegments?: number;
+  hasInn?: boolean;
+  citySections?: number;
+  pennants?: number;
+  hasCathedral?: boolean;
+  surroundingTiles?: number;
+  completedCities?: number;
 };
 
 const calculateScore = (formValues: Inputs): number => {
@@ -16,18 +17,20 @@ const calculateScore = (formValues: Inputs): number => {
     return 0;
   }
 
-  const { featureType, sections, hasInn, hasCathedral } = formValues;
+  const { featureType, hasInn, hasCathedral } = formValues;
+  const roadSegments = formValues.roadSegments || 0;
+  const citySections = formValues.citySections || 0;
   const pennants = formValues.pennants || 0;
   const surroundingTiles = formValues.surroundingTiles || 0;
   const completedCities = formValues.completedCities || 0;
 
 
   if (featureType === 'road') {
-    return hasInn ? sections * 2 : sections;
+    return hasInn ? roadSegments * 2 : roadSegments;
   }
 
   if (featureType === 'city') {
-    return hasCathedral ? (sections + pennants) * 3 : (sections + pennants) * 2;
+    return hasCathedral ? (citySections + pennants) * 3 : (citySections + pennants) * 2;
   }
 
   if (featureType === 'monastery') {
@@ -42,43 +45,72 @@ const calculateScore = (formValues: Inputs): number => {
 };
 
 
-// interface NumberInputProps extends Omit<ControllerProps<"input">, "render"> {
-//   inputProps: {
-//     min: number;
-//     max?: number;
-//   }
-// }
-
+// can probably extract this out to a separate component
+// consider adding logic to onChange to remove preceding 0's
 const NumberInput = ({
-  as,
   inputProps,
-  ...rest
+  ...controllerProps
 }: any) => (
     <Controller
-      {...rest}
-      render={(props) => (
-        <input
-          {...props}
-          type="number"
-          min={0}
-          onChange={(e) =>
-            props.onChange(
-              Number.isNaN(parseFloat(e.target.value))
-              ? 0
-              : parseFloat(e.target.value)
-              )
-            }
-          {...inputProps}
-        />
-      )}
+      {...controllerProps}
+      render={(props) => {
+
+        const { control, name } = controllerProps;
+        const { setValue } = control;
+        const min = inputProps?.min || 0;
+        const max = inputProps?.max || Infinity;
+        const isInRange = (value: number) => (min <= value && value <= max);
+
+        return (
+          <>
+            <input
+              {...props}
+              type="number"
+              min={min}
+              max={max}
+              onChange={(e) =>
+                props.onChange(
+                  Number.isNaN(parseFloat(e.target.value))
+                  ? 0
+                  : parseFloat(e.target.value)
+                  )
+                }
+              {...inputProps}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const newValue = props.value - 1;
+
+                if (isInRange(newValue)) setValue(name, newValue);
+              }}
+            >
+              decrement
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const newValue = props.value + 1;
+
+                if (isInRange(newValue)) setValue(name, newValue);
+              }}
+            >
+              increment
+            </button>
+          </>
+        )
+      }}
     />
   );
 
 
 export default function ScoreForm() {
+  const [ records, setRecords ] = useState<Inputs[]>([]);
+
   const defaultValues = {
     featureType: '',
-    sections: 2,
+    roadSegments: 2,
+    citySections: 2,
     pennants: 0,
     hasInn: false,
     hasCathedral: false,
@@ -86,27 +118,120 @@ export default function ScoreForm() {
     completedCities: 0
   };
 
-  const { register, watch, control } = useForm<Inputs>({
+  const { register, handleSubmit, watch, control } = useForm<Inputs>({
     defaultValues
   });
 
   const watchAll = watch();
 
-  // this is account for a quirk in which, when you click on a feature for the first time, initially it only sets the featureType in watchAll
+  /**
+   * this is account for a quirk
+   * when you click on a feature for the first time
+   * initially it only sets the featureType in watchAll
+   * pretty sure this is linked to the showing/hiding of form fields which are only registered when shown
+   * planning on adjusting this so that the showing/hiding is more CSS class based rather than only JS based
+   */
   const values = Object.keys(watchAll).length === 1 ? {
     ...defaultValues,
     ...watchAll
   } : watchAll;
   const score = calculateScore(values);
 
-  return (
-    <div>
-      <h1>Carcassonne Calculator</h1>
-      <form>
+  const onSubmit = (data: any) => setRecords([...records, data]);
+
+  const getFormContents = () => {
+    if (watchAll.featureType === 'road') {
+      return (
+        <>
+          <div className="">
+            <strong>Road Segments:</strong>
+            <NumberInput
+              control={control}
+              name="roadSegments"
+              inputProps={{
+                min: defaultValues.roadSegments
+              }}
+            />
+          </div>
+          {watchAll.roadSegments && watchAll.roadSegments > 2 && (
+            <div className="">
+              <strong>Modifiers:</strong>
+              <label>
+                <input name="hasInn" type="checkbox" defaultChecked={false} ref={register} />
+                Has an Inn{watchAll.hasInn ? '!!!' : '?'}
+              </label>
+            </div>
+          )}
+        </>
+      );
+    }
+    if (watchAll.featureType === 'city') {
+      return (
+        <>
+          <div className="">
+            <strong>City Sections:</strong>
+            <NumberInput
+              control={control}
+              name="citySections"
+              inputProps={{
+                min: defaultValues.citySections
+              }}
+            />
+          </div>
+          <div className="">
+            <strong>Pennants:</strong>
+            <NumberInput
+              control={control}
+              name="pennants"
+              inputProps={{
+                max: watchAll.citySections
+              }}
+            />
+          </div>
+          {watchAll.citySections && watchAll.citySections > 4 && (
+            <div className="">
+              <strong>Modifiers:</strong>
+              <label>
+                <input name="hasCathedral" type="checkbox" defaultChecked={false} ref={register} />
+                Has a Cathedral{watchAll.hasCathedral ? '!!!' : '?'}
+              </label>
+            </div>
+          )}
+        </>
+      );
+    }
+    if (watchAll.featureType === 'monastery') {
+      return (
         <div>
-          <strong>Feature Type:</strong>
-          <label>
+          <strong>Surrounding Tiles:</strong>
+          <NumberInput
+            control={control}
+            name="surroundingTiles"
+          />
+        </div>
+      );
+    }
+    if (watchAll.featureType === 'field') {
+      return (
+        <div>
+          <strong>Completed Cities:</strong>
+          <NumberInput
+            control={control}
+            name="completedCities"
+          />
+        </div>
+      );
+    }
+  }
+
+  return (
+    <div className="">
+      <h1 className="">Carcassonne Calculator</h1>
+      <form className="" onSubmit={handleSubmit(onSubmit)}>
+        <div className="">
+          <label className="">
             <input
+              className=""
               name="featureType"
               type="radio"
               value="road"
@@ -114,8 +239,9 @@ export default function ScoreForm() {
             />
             Road
           </label>
-          <label>
+          <label className="">
             <input
+              className=""
               name="featureType"
               type="radio"
               value="city"
@@ -123,8 +249,9 @@ export default function ScoreForm() {
             />
             City
           </label>
-          <label>
+          <label className="">
             <input
+              className=""
               name="featureType"
               type="radio"
               value="monastery"
@@ -132,8 +259,9 @@ export default function ScoreForm() {
             />
             Monastery
           </label>
-          <label>
+          <label className="">
             <input
+              className=""
               name="featureType"
               type="radio"
               value="field"
@@ -142,79 +270,26 @@ export default function ScoreForm() {
             Field
           </label>
         </div>
-        {(watchAll.featureType === 'road' || watchAll.featureType === 'city') && (
-          <div>
-            <strong>Sections:</strong>
-            <NumberInput
-              control={control}
-              name="sections"
-              inputProps={{
-                min: defaultValues.sections
-              }}
-            />
-          </div>
-        )}
-        {watchAll.featureType === 'monastery' && (
-          <div>
-            <strong>Surrounding Tiles:</strong>
-            <NumberInput
-              control={control}
-              name="surroundingTiles"
-            />
-          </div>
-        )}
-        {watchAll.featureType === 'field' && (
-          <div>
-            <strong>Completed Cities:</strong>
-            <NumberInput
-              control={control}
-              name="completedCities"
-            />
-          </div>
-        )}
-        {watchAll.featureType === 'city' && (
-          <div>
-            <strong>Pennants:</strong>
-            <NumberInput
-              control={control}
-              name="pennants"
-              inputProps={{
-                max: watchAll.sections
-              }}
-            />
-          </div>
-        )}
-        <div>
-          {watchAll.featureType === 'road' && (
+        {getFormContents()}
+        <div className="">
+          {watchAll.featureType === '' ? (
+            <em>Select a feature type to calculate the score.</em>
+          ) : (
             <>
-              <strong>Modifiers:</strong>
-              <label>
-                <input name="hasInn" type="checkbox" defaultChecked={false} ref={register} />
-                Has an Inn
-              </label>
-            </>
-          )}
-          {watchAll.featureType === 'city' && watchAll.sections > 4 && (
-            <>
-              <strong>Modifiers:</strong>
-              <label>
-                <input name="hasCathedral" type="checkbox" defaultChecked={false} ref={register} />
-                Has a Cathedral
-              </label>
+              <strong className="">Score:</strong>
+              {score}
             </>
           )}
         </div>
+        <input className="" type="submit" />
       </form>
-      <div>
-        {watchAll.featureType === '' ? (
-          <em>Select a feature type to calculate the score.</em>
-        ) : (
-          <>
-            <strong>Score:</strong>
-            {score}
-          </>
-        )}
-      </div>
+      <ul>
+        {records.map((record: Inputs, index: number) => (
+          <li key={index} className="">
+            <div>{JSON.stringify(record)}</div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
