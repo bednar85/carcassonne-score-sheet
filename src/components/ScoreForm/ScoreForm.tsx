@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import NumberInput from '../NumberInput/NumberInput';
+import './ScoreForm.scss';
 
 interface Inputs {
   featureType: string;
@@ -62,7 +63,7 @@ const ScoreForm = () => {
     completedCities: 0
   };
 
-  const { control, handleSubmit, register, reset, watch } = useForm<Inputs>({
+  const { control, handleSubmit, register, reset, setValue, watch } = useForm<Inputs>({
     defaultValues
   });
 
@@ -98,21 +99,18 @@ const ScoreForm = () => {
     if (watchAll.featureType === 'road') {
       return (
         <>
-          <div className="">
-            <strong>Road Segments:</strong>
+          <div className="score-form__field">
             <NumberInput
               control={control}
               name="roadSegments"
-              inputProps={{
-                min: defaultValues.roadSegments
-              }}
+              label="Road Segments"
+              min={defaultValues.roadSegments}
             />
           </div>
           {watchAll.roadSegments && watchAll.roadSegments > 2 && (
-            <div className="">
-              <strong>Modifiers:</strong>
-              <label>
-                <input name="hasInn" type="checkbox" defaultChecked={false} ref={register} />
+            <div className="score-form__field">
+              <label className="score-form__field__label-with-input" htmlFor="hasInn">
+                <input id="hasInn" name="hasInn" type="checkbox" defaultChecked={false} ref={register} />
                 Has an Inn{watchAll.hasInn ? '!!!' : '?'}
               </label>
             </div>
@@ -123,31 +121,28 @@ const ScoreForm = () => {
     if (watchAll.featureType === 'city') {
       return (
         <>
-          <div className="">
-            <strong>City Sections:</strong>
+          <div className="score-form__field">
             <NumberInput
               control={control}
               name="citySections"
-              inputProps={{
-                min: defaultValues.citySections
-              }}
+              label="City Sections"
+              min={defaultValues.citySections}
             />
           </div>
-          <div className="">
-            <strong>Pennants:</strong>
-            <NumberInput
-              control={control}
-              name="pennants"
-              inputProps={{
-                max: watchAll.citySections
-              }}
-            />
-          </div>
+          {watchAll.citySections && watchAll.citySections > 2 && (
+            <div className="score-form__field">
+              <NumberInput
+                control={control}
+                name="pennants"
+                label="Pennants"
+                max={watchAll.citySections}
+              />
+            </div>
+          )}
           {watchAll.citySections && watchAll.citySections > 4 && (
-            <div className="">
-              <strong>Modifiers:</strong>
-              <label>
-                <input name="hasCathedral" type="checkbox" defaultChecked={false} ref={register} />
+            <div className="score-form__field">
+              <label className="score-form__field__label-with-input"htmlFor="hasCathedral">
+                <input id="hasCathedral" name="hasCathedral" type="checkbox" defaultChecked={false} ref={register} />
                 Has a Cathedral{watchAll.hasCathedral ? '!!!' : '?'}
               </label>
             </div>
@@ -157,22 +152,22 @@ const ScoreForm = () => {
     }
     if (watchAll.featureType === 'monastery') {
       return (
-        <div>
-          <strong>Surrounding Tiles:</strong>
+        <div className="score-form__field">
           <NumberInput
             control={control}
             name="surroundingTiles"
+            label="Surrounding Tiles"
           />
         </div>
       );
     }
     if (watchAll.featureType === 'field') {
       return (
-        <div>
-          <strong>Completed Cities:</strong>
+        <div className="score-form__field">
           <NumberInput
             control={control}
             name="completedCities"
+            label="Completed Cities"
           />
         </div>
       );
@@ -182,7 +177,7 @@ const ScoreForm = () => {
   return (
     <div className="">
       <h1 className="">Carcassonne Calculator</h1>
-      <form className="" onSubmit={handleSubmit(onSubmit)}>
+      <form className="score-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="">
           <label className="">
             <input
@@ -225,18 +220,22 @@ const ScoreForm = () => {
             Field
           </label>
         </div>
-        {getFormContents()}
-        <div className="">
+        <section className="score-form__section">
+          {getFormContents()}
+        </section>
+        <section className="score-form__section">
           {watchAll.featureType === '' ? (
-            <em>Select a feature type to calculate the score.</em>
-          ) : (
-            <>
-              <strong className="">Score:</strong>
-              {score}
-            </>
-          )}
-        </div>
+              <p className="intro-message">Select a feature type to calculate the score.</p>
+            ) : (
+              <p className="score">{score}</p>
+            )
+          }
+        </section>
         <button className="" type="submit" disabled={watchAll.featureType === ''}>Add to Score Sheet</button>
+        <button className="" type="button" onClick={() => reset({
+          ...defaultValues,
+          featureType: watchAll.featureType
+        })}>Reset</button>
       </form>
       <ul>
         {records.map((record: Inputs, index: number) => (

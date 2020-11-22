@@ -1,0 +1,40 @@
+.score-form {
+  text-align: center;
+
+  &__section {
+    margin-bottom: 2rem;
+  }
+
+  &__field {
+    &__label {
+      display: block;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    &__label-with-input {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+.intro-message {
+  font-size: 1rem;
+  font-style: italic;
+}
+
+.score {
+  // border-radius: 50px;
+  // color: #26b0b9;
+  // display: inline-block;
+  // padding: 15px 20px;
+  background-color: #096759;
+  color: #35cfd9;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 0;
+  padding: 15px;
+  text-align: center;
+}

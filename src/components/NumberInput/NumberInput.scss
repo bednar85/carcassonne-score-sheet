@@ -1,0 +1,48 @@
+.number-input {
+  margin-bottom: 20px;
+
+  &__label {
+    display: block;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+
+  &__input-elements {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__input {
+    border: none;
+    border-bottom: 2px solid #6e6d7a;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.25rem;
+    line-height: 1;
+    margin: 0 20px;
+    padding: 10px;
+    padding-left: 20px;
+    text-align: center;
+    width: 25%;
+  }
+
+  &__btn {
+    border-radius: 8px;
+    border: none;
+    color: #6e6d7a;
+    font-size: 18px;
+    font-weight: bold;
+    height: 35px;
+    outline: none;
+    width: 35px;
+    // transition: box-shadow 0.5s ease-in;
+    // background-color: #fff;
+
+    // &--decrement
+    // &--increment
+    // &:hover {
+    //   box-shadow: 0 0 5px #dadada;
+    // }
+  }
+}
