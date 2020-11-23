@@ -9,7 +9,7 @@ interface Inputs {
   hasInn?: boolean;
   citySections?: number;
   pennants?: number;
-  hasCathedral?: boolean;
+  cityType?: string;
   surroundingTiles?: number;
   completedCities?: number;
 };
@@ -19,7 +19,7 @@ const calculateScore = (formValues: Inputs): number => {
     return 0;
   }
 
-  const { featureType, hasInn, hasCathedral } = formValues;
+  const { featureType, hasInn, cityType } = formValues;
   const roadSegments = formValues.roadSegments || 0;
   const citySections = formValues.citySections || 0;
   const pennants = formValues.pennants || 0;
@@ -35,7 +35,12 @@ const calculateScore = (formValues: Inputs): number => {
   }
 
   if (featureType === 'city') {
-    return hasCathedral ? (citySections + pennants) * 3 : (citySections + pennants) * 2;
+    const cityValue = citySections + pennants;
+
+    if (cityType === 'normal') return cityValue * 2;
+    if (cityType === 'cathedral') return cityValue * 3;
+
+    return cityValue;
   }
 
   if (featureType === 'monastery') {
@@ -56,6 +61,7 @@ const ScoreForm = () => {
     featureType: '',
     roadSegments: 2,
     citySections: 2,
+    cityType: 'normal',
     pennants: 0,
     hasInn: false,
     hasCathedral: false,
@@ -63,7 +69,7 @@ const ScoreForm = () => {
     completedCities: 0
   };
 
-  const { control, handleSubmit, register, reset, setValue, watch } = useForm<Inputs>({
+  const { control, handleSubmit, register, reset, watch } = useForm<Inputs>({
     defaultValues
   });
 
@@ -129,24 +135,48 @@ const ScoreForm = () => {
               min={defaultValues.citySections}
             />
           </div>
-          {watchAll.citySections && watchAll.citySections > 2 && (
+          <div className="score-form__field">
+            <NumberInput
+              control={control}
+              name="pennants"
+              label="Pennants"
+              max={watchAll.citySections}
+            />
+          </div>
+          <div className="">
             <div className="score-form__field">
-              <NumberInput
-                control={control}
-                name="pennants"
-                label="Pennants"
-                max={watchAll.citySections}
-              />
-            </div>
-          )}
-          {watchAll.citySections && watchAll.citySections > 4 && (
-            <div className="score-form__field">
-              <label className="score-form__field__label-with-input"htmlFor="hasCathedral">
-                <input id="hasCathedral" name="hasCathedral" type="checkbox" defaultChecked={false} ref={register} />
-                Has a Cathedral{watchAll.hasCathedral ? '!!!' : '?'}
+              <label className="">
+                <input
+                  className=""
+                  name="cityType"
+                  type="radio"
+                  value="normal"
+                  ref={register}
+                />
+                Normal
+              </label>
+              <label className="">
+                <input
+                  className=""
+                  name="cityType"
+                  type="radio"
+                  value="cathedral"
+                  ref={register}
+                />
+                Has a Cathedral
+              </label>
+              <label className="">
+                <input
+                  className=""
+                  name="cityType"
+                  type="radio"
+                  value="incomplete"
+                  ref={register}
+                />
+                Is Incomplete
               </label>
             </div>
-          )}
+          </div>
         </>
       );
     }
@@ -231,11 +261,12 @@ const ScoreForm = () => {
             )
           }
         </section>
-        <button className="" type="submit" disabled={watchAll.featureType === ''}>Add to Score Sheet</button>
+        <button className="" type="submit" disabled={watchAll.featureType === ''}>Add Score</button>
         <button className="" type="button" onClick={() => reset({
           ...defaultValues,
           featureType: watchAll.featureType
-        })}>Reset</button>
+        })}>Clear Values</button>
+        <button className="" type="button" onClick={() => reset()}>Full Reset</button>
       </form>
       <ul>
         {records.map((record: Inputs, index: number) => (
