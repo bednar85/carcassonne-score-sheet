@@ -69,7 +69,7 @@ const ScoreForm = () => {
     completedCities: 0
   };
 
-  const { control, handleSubmit, register, reset, watch } = useForm<Inputs>({
+  const { handleSubmit, register, reset, setValue, watch } = useForm<Inputs>({
     defaultValues
   });
 
@@ -101,16 +101,22 @@ const ScoreForm = () => {
     reset();
   };
 
+  const numberInputProps = {
+    register,
+    setValue
+  }
+
   const getFormContents = () => {
     if (watchAll.featureType === 'road') {
       return (
         <>
           <div className="score-form__field">
             <NumberInput
-              control={control}
+              {...numberInputProps}
               name="roadSegments"
               label="Road Segments"
               min={defaultValues.roadSegments}
+              value={watchAll.roadSegments || defaultValues.roadSegments}
             />
           </div>
           {watchAll.roadSegments && watchAll.roadSegments > 2 && (
@@ -129,18 +135,20 @@ const ScoreForm = () => {
         <>
           <div className="score-form__field">
             <NumberInput
-              control={control}
+              {...numberInputProps}
               name="citySections"
               label="City Sections"
               min={defaultValues.citySections}
+              value={watchAll.citySections || defaultValues.citySections}
             />
           </div>
           <div className="score-form__field">
             <NumberInput
-              control={control}
+              {...numberInputProps}
               name="pennants"
               label="Pennants"
               max={watchAll.citySections}
+              value={watchAll.pennants || defaultValues.pennants}
             />
           </div>
           <div className="">
@@ -184,9 +192,10 @@ const ScoreForm = () => {
       return (
         <div className="score-form__field">
           <NumberInput
-            control={control}
+            {...numberInputProps}
             name="surroundingTiles"
             label="Surrounding Tiles"
+            value={watchAll.surroundingTiles || defaultValues.surroundingTiles}
           />
         </div>
       );
@@ -195,9 +204,10 @@ const ScoreForm = () => {
       return (
         <div className="score-form__field">
           <NumberInput
-            control={control}
+            {...numberInputProps}
             name="completedCities"
             label="Completed Cities"
+            value={watchAll.completedCities || defaultValues.completedCities}
           />
         </div>
       );
