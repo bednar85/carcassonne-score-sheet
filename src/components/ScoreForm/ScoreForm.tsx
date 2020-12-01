@@ -13,6 +13,7 @@ interface Inputs {
   surroundingTiles?: number;
   completedCities?: number;
 };
+type InputsKeys = keyof Inputs;
 
 const calculateScore = (formValues: Inputs): number => {
   if (!Object.keys(formValues).length) {
@@ -69,7 +70,7 @@ const ScoreForm = () => {
     completedCities: 0
   };
 
-  const { control, handleSubmit, register, reset, watch } = useForm<Inputs>({
+  const { handleSubmit, register, reset, setValue, watch } = useForm<Inputs>({
     defaultValues
   });
 
@@ -101,15 +102,27 @@ const ScoreForm = () => {
     reset();
   };
 
+  const softReset = (featureType = watchAll.featureType) => reset({
+    ...defaultValues,
+    featureType: featureType
+  });
+
+  const numberInputProps = (name: InputsKeys) => ({
+    register,
+    setValue,
+    name,
+    label: name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+    min: defaultValues[name],
+    value: watchAll[name] || defaultValues[name]
+  });
+
   const getFormContents = () => {
     if (watchAll.featureType === 'road') {
       return (
         <>
           <div className="score-form__field">
             <NumberInput
-              control={control}
-              name="roadSegments"
-              label="Road Segments"
+              {...numberInputProps('roadSegments')}
               min={defaultValues.roadSegments}
             />
           </div>
@@ -129,17 +142,13 @@ const ScoreForm = () => {
         <>
           <div className="score-form__field">
             <NumberInput
-              control={control}
-              name="citySections"
-              label="City Sections"
+              {...numberInputProps('citySections')}
               min={defaultValues.citySections}
             />
           </div>
           <div className="score-form__field">
             <NumberInput
-              control={control}
-              name="pennants"
-              label="Pennants"
+              {...numberInputProps('pennants')}
               max={watchAll.citySections}
             />
           </div>
@@ -183,22 +192,14 @@ const ScoreForm = () => {
     if (watchAll.featureType === 'monastery') {
       return (
         <div className="score-form__field">
-          <NumberInput
-            control={control}
-            name="surroundingTiles"
-            label="Surrounding Tiles"
-          />
+          <NumberInput {...numberInputProps('surroundingTiles')} />
         </div>
       );
     }
     if (watchAll.featureType === 'field') {
       return (
         <div className="score-form__field">
-          <NumberInput
-            control={control}
-            name="completedCities"
-            label="Completed Cities"
-          />
+          <NumberInput {...numberInputProps('completedCities')} />
         </div>
       );
     }
@@ -216,6 +217,7 @@ const ScoreForm = () => {
               type="radio"
               value="road"
               ref={register}
+              onClick={() => softReset('road')}
             />
             Road
           </label>
@@ -226,6 +228,7 @@ const ScoreForm = () => {
               type="radio"
               value="city"
               ref={register}
+              onClick={() => softReset('city')}
             />
             City
           </label>
@@ -236,6 +239,7 @@ const ScoreForm = () => {
               type="radio"
               value="monastery"
               ref={register}
+              onClick={() => softReset('monastery')}
             />
             Monastery
           </label>
@@ -246,6 +250,7 @@ const ScoreForm = () => {
               type="radio"
               value="field"
               ref={register}
+              onClick={() => softReset('field')}
             />
             Field
           </label>
@@ -262,10 +267,11 @@ const ScoreForm = () => {
           }
         </section>
         <button className="" type="submit" disabled={watchAll.featureType === ''}>Add Score</button>
-        <button className="" type="button" onClick={() => reset({
-          ...defaultValues,
-          featureType: watchAll.featureType
-        })}>Clear Values</button>
+        <button
+          className=""
+          type="button"
+          onClick={() => softReset()}
+        >Soft Reset</button>
         <button className="" type="button" onClick={() => reset()}>Full Reset</button>
       </form>
       <ul>
