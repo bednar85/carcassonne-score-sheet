@@ -27,10 +27,6 @@ const calculateScore = (formValues: Inputs): number => {
   const surroundingTiles = formValues.surroundingTiles || 0;
   const completedCities = formValues.completedCities || 0;
 
-  // console.log('');
-  // console.log('FILENAME - METHOD');
-  // console.log('  formValues:', formValues);
-
   if (featureType === 'road') {
     return hasInn ? roadSegments * 2 : roadSegments;
   }
@@ -98,8 +94,13 @@ const ScoreForm = () => {
    * since I only care if they have been set
    */
   const onSubmit = (data: any) => {
-    setRecords([...records, data])
-    reset();
+    const newRecord = {
+      ...data,
+      score
+    }
+
+    setRecords([...records, newRecord]);
+    reset(defaultValues);
   };
 
   const softReset = (featureType = watchAll.featureType) => reset({
@@ -130,7 +131,7 @@ const ScoreForm = () => {
             <div className="score-form__field">
               <label className="score-form__field__label-with-input" htmlFor="hasInn">
                 <input id="hasInn" name="hasInn" type="checkbox" defaultChecked={false} ref={register} />
-                Has an Inn{watchAll.hasInn ? '!!!' : '?'}
+                Has an Inn 😆
               </label>
             </div>
           )}
@@ -162,7 +163,7 @@ const ScoreForm = () => {
                   value="normal"
                   ref={register}
                 />
-                Normal
+                Normal 😄
               </label>
               <label className="">
                 <input
@@ -172,7 +173,7 @@ const ScoreForm = () => {
                   value="cathedral"
                   ref={register}
                 />
-                Has a Cathedral
+                Has a Cathedral 😆
               </label>
               <label className="">
                 <input
@@ -182,7 +183,7 @@ const ScoreForm = () => {
                   value="incomplete"
                   ref={register}
                 />
-                Is Incomplete
+                Is Incomplete 😢
               </label>
             </div>
           </div>
